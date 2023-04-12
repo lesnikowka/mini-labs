@@ -26,7 +26,7 @@ private:
 		if (n != &head && (!n || n->key == key)) return n;
 
 		for (int i = n->next.size() - 1; i >= 0; i--) {
-			if ((n->next[i]) != nullptr && key >= (n->next[i]->key)) {
+			if ((n->next[i]) && key >= (n->next[i]->key)) {
 				return find_(key, n->next[i]);
 			}
 		}
@@ -40,26 +40,28 @@ private:
 
 		bool end_while = false;
 
-		while (!end_while && n && (key > n->key)) {
+		while (!end_while && n && (key >= n->key)) {
 			end_while = true;
-			int i = n->next.size() - 1; 
-			for (; i >= 0; i--) {
-				if (n->next[i] && key > n->next[i]->key) {
+			
+			for (int i = n->next.size() - 1; i >= 0; i--) {
+				if (n->next[i] && key >= n->next[i]->key) {
 					end_while = false;
 					n = n->next[i];
 					break;
 					
 				}
-			} 
-			
+			} 	
 
-
-			if (n && end_while) history.push(n);
+			if (n && !end_while) history.push(n);
 		}
 
 	}
 
+
 	size_t random_lvl() {
+		std::vector<int> v = {0, 0, 1, 0, 0};
+		static int n = -1;
+
 		double val = (double)std::rand() / RAND_MAX;
 
 		size_t lvl = 0;
@@ -69,9 +71,12 @@ private:
 			if (val <= deg) lvl = i;
 			else break;
 		}
-		
 
-		return lvl;
+		//return 0;
+		n++;
+		return v[n];
+		
+		//return lvl;
 	}
 
 public:
@@ -106,28 +111,44 @@ public:
 		if (!find(key)) {
 			Node* new_node = new Node(random_lvl(), key, val);
 
+			std::stack<Node*> history;
+			fill_history(history, key);
 
-			if (is_null(&head)) {
-				for (int i = 0; i <= new_node->lvl(); i++) {
-					head.next[i] = new_node;
-				}
+
+			for (size_t i = 0; i <= new_node->lvl(); i++) {
+				if (history.empty()) break;
+				
+				while (i > history.top()->lvl()) 
+					history.pop();
+				
+				new_node->next[i] = history.top()->next[i];
+				history.top()->next[i] = new_node;
+
 			}
-			else {
-				std::stack<Node*> history;
-				fill_history(history, key);
-
-
-				for (size_t i = 0; i <= new_node->lvl(); i++) {
-					if (history.empty()) break;
-					
-					if (i > history.top()->lvl()) {
-						history.pop();
-					}
-					new_node->next[i] = history.top()->next[i];
-					history.top()->next[i] = new_node;
-
-				}
-			}
+			
 		}
+	}
+
+	void erase(const T& key) {
+		if (!find(key)) throw std::exception("Element was not found");
+
+		std::stack<Node*> history;
+
+		fill_history(history, key);
+
+		Node* cur_node = history.top();
+		history.pop();
+
+
+		for (size_t i = 0; i <= cur_node->lvl(); i++) {
+			if (history.empty()) break;
+
+			while (i > history.top()->lvl())
+				history.pop();
+
+			history.top()->next[i] = cur_node->next[i];
+		}
+
+		delete cur_node;
 	}
 };

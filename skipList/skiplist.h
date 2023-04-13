@@ -13,8 +13,10 @@ public:
 		T key;
 		Y val;
 		std::vector<Node*> next;
+		std::vector<Node*> prev;
 
-		Node(size_t size_, T key_ = T(), Y val_ = Y()) : key(key_), val(val_), next(std::move(std::vector<Node*>(size_ + 1, nullptr))) {}
+		Node(size_t size_, T key_ = T(), Y val_ = Y()) : key(key_), val(val_), 
+			next(std::move(std::vector<Node*>(size_ + 1, nullptr))), prev(std::move(std::vector<Node*>(size_ + 1, nullptr))) {}
 		size_t lvl() { return next.size() - 1; }
 	};
 private:
@@ -42,15 +44,15 @@ private:
 
 		while (!end_while && n && (key >= n->key)) {
 			end_while = true;
-			
+
 			for (int i = n->next.size() - 1; i >= 0; i--) {
 				if (n->next[i] && key >= n->next[i]->key) {
 					end_while = false;
 					n = n->next[i];
 					break;
-					
+
 				}
-			} 	
+			}
 
 			if (n && !end_while) history.push(n);
 		}
@@ -59,7 +61,7 @@ private:
 
 
 	size_t random_lvl() {
-		std::vector<int> v = {0, 0, 1, 0, 0};
+		std::vector<int> v = { 0, 1, 0, 0, 0 };
 		static int n = -1;
 
 		double val = (double)std::rand() / RAND_MAX;
@@ -72,11 +74,11 @@ private:
 			else break;
 		}
 
-		//return 0;
-		n++;
-		return v[n];
-		
-		//return lvl;
+
+		//n++;
+		//return v[n];
+
+		return lvl;
 	}
 
 public:
@@ -86,7 +88,7 @@ public:
 	~SkipList() {
 		if (head.next[0]) {
 			Node* tmp = head.next[0];
-			Node *next = nullptr;
+			Node* next = nullptr;
 
 			while (tmp) {
 				next = tmp->next[0];
@@ -117,38 +119,43 @@ public:
 
 			for (size_t i = 0; i <= new_node->lvl(); i++) {
 				if (history.empty()) break;
-				
-				while (i > history.top()->lvl()) 
+
+				while (i > history.top()->lvl())
 					history.pop();
-				
+
 				new_node->next[i] = history.top()->next[i];
 				history.top()->next[i] = new_node;
+				new_node->prev[i] = history.top();
 
 			}
-			
+
 		}
 	}
 
 	void erase(const T& key) {
 		if (!find(key)) throw std::exception("Element was not found");
-
+	
 		std::stack<Node*> history;
-
+	
 		fill_history(history, key);
-
+	
 		Node* cur_node = history.top();
 		history.pop();
-
-
+	
+	
 		for (size_t i = 0; i <= cur_node->lvl(); i++) {
 			if (history.empty()) break;
-
+	
 			while (i > history.top()->lvl())
 				history.pop();
-
+	
 			history.top()->next[i] = cur_node->next[i];
+			if (cur_node->next[i])
+				cur_node->next[i]->prev[i] = history.top();
 		}
-
+	
 		delete cur_node;
 	}
+
+
 };

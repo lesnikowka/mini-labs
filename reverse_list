@@ -1,0 +1,27 @@
+struct node {
+	int key;
+	node* next;
+	node(int key_ = 0, node* next_ = nullptr) : key(key_), next(next_) {}
+};
+
+node* reverse_list(node* head) {
+	if (!head) return head;
+	node* cur = nullptr, *next = head, *after_next = nullptr;
+
+	while (next) {
+		after_next = next->next;
+		next->next = cur;
+		cur = next;
+		next = after_next;
+	}
+
+	return cur;
+}
+
+void print_list(node* head) {
+	while (head) {
+		std::cout << head->key << " ";
+		head = head->next;
+	}
+	std::cout << "\n";
+}

@@ -1,5 +1,5 @@
 #include <iostream>
-#include "skipList.h"
+#include "skiplist.h"
 #include <vector>
 
 template<class T, class Y>
@@ -28,7 +28,7 @@ std::vector<std::pair<int, int>> create_vector(size_t size) {
 	std::vector<std::pair<int, int>> v;
 	for (int i = 0; i < size; i++) {
 		int tmp = std::rand() / 1000;
-		if (std::find(v.begin(), v.end(), std::make_pair(tmp,tmp)) == v.end()) {
+		if (std::find(v.begin(), v.end(), std::make_pair(tmp, tmp)) == v.end()) {
 			v.push_back(std::make_pair(tmp, tmp));
 		}
 	}
@@ -44,27 +44,17 @@ void printVector(std::vector<std::pair<int, int>> v) {
 }
 
 int main() {
-	//std::vector<std::pair<int, int>> v = { {1,1},{6,45},{-1,-12},{100,1030},{234,234},{884663,5452},{8977,0},{5,40}, {100, 3}, {888,3}, {2,2} };
-	//
-	//SkipList<int, int> sl = create_list<int, int>(v);
-	//
-	//bool b = Contain<int, int>(v, sl);
-	//
-	//std::vector<std::pair<int, int>> v = { {1,1},{6,45},{-1,-12},{100,1030},{234,234},{884663,5452},{8977,0},{5,40}, {100, 3}, {888,3}, {2,2} };
-
-
-	std::vector<std::pair<int, int>> v = create_vector(7);
-	printVector(v);
-
-	v = { {0,0}, {7,7}, {21,21}, {2,2}, {8,8}, {11,11} };
-
-	SkipList<int, int> sl;
-
-	for (const auto& e : v) {
-		sl.emplace(e.first, e.second);
-	}
-
+	std::vector<std::pair<int, int>> v = create_vector(1000);
 	
+	//printVector(v);
+	//v = { {0,0}, {7,7}, {21,21}, {2,2}, {8,8}, {11,11} };
+
+	SkipList<int, int> sl = create_list(v);
+	//SkipList<int, int> sl;
+
+	//for (const auto& e : v) {
+	//	sl.emplace(e.first, e.second);
+	//}
 
 	bool b = Contain<int, int>(v, sl);
 
@@ -82,8 +72,11 @@ int main() {
 	v.erase(v.begin());
 	v.erase(v.begin());
 
-	printVector(v);
+	//printVector(v);
+
+	auto sl2 = sl;
 
 	bool b2 = Contain<int, int>(v, sl);
+	bool b3 = Contain<int, int>(v, sl2);
 
 }

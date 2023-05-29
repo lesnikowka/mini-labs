@@ -56,9 +56,15 @@ int main() {
 	std::vector<std::pair<int, int>> v = create_vector(7);
 	printVector(v);
 
-	SkipList<int, int> sl = create_list<int, int>(v);
-
 	v = { {0,0}, {7,7}, {21,21}, {2,2}, {8,8}, {11,11} };
+
+	SkipList<int, int> sl;
+
+	for (const auto& e : v) {
+		sl.emplace(e.first, e.second);
+	}
+
+	
 
 	bool b = Contain<int, int>(v, sl);
 

@@ -1,14 +1,11 @@
 #pragma once
 
-#pragma once
-
-#pragma once
 #include <vector>
 #include <stack>
 #include <ctime>
 #include <stdlib.h>
 
-const size_t STANDART_LVL = 10;
+const size_t STANDART_MAX_LVL = 10;
 
 template<class T, class Y>
 class SkipList {
@@ -19,19 +16,18 @@ public:
 		std::vector<Node*> next;
 		std::vector<Node*> prev;
 
+		Node() = delete;
 		Node(size_t size_, T key_ = T(), Y val_ = Y()) : key(key_), val(val_),
-			next(std::move(std::vector<Node*>(size_ + 1, nullptr))), prev(std::move(std::vector<Node*>(size_ + 1, nullptr))) {}
+			next(size_ + 1, nullptr), prev(size_ + 1, nullptr) {}
 		size_t lvl() { return next.size() - 1; }
 	};
 
 	SkipList() :
-		head(STANDART_LVL),
-		max_lvl(STANDART_LVL) {
+		head(STANDART_MAX_LVL) {
 		std::srand(std::time(0));
 	};
 	SkipList(const SkipList& sl) :
-		max_lvl(sl.max_lvl),
-		head(STANDART_LVL)
+		head(STANDART_MAX_LVL)
 	{
 		Node* extern_node = sl.head.next[0];
 		while (extern_node) {
@@ -39,23 +35,15 @@ public:
 			extern_node = extern_node->next[0];
 		}
 	}
-	SkipList(SkipList&& sl) noexcept :
-		head(STANDART_LVL),
-		max_lvl(STANDART_LVL)
-	{
-		std::swap(head, sl.head);
-		std::swap(max_lvl, sl.max_lvl);
-	}
 	~SkipList() {
-		if (head.next[0]) {
-			Node* tmp = head.next[0];
-			Node* next = nullptr;
-
-			while (tmp) {
-				next = tmp->next[0];
-				delete tmp;
-				tmp = next;
-			}
+		clear();
+	}
+	SkipList& operator=(const SkipList& sl) {
+		clear();
+		Node* extern_node = sl.head.next[0];
+		while (extern_node) {
+			emplace(extern_node->key, extern_node->val);
+			extern_node = extern_node->next[0];
 		}
 	}
 
@@ -78,9 +66,11 @@ public:
 					history.pop();
 
 				new_node->next[i] = history.top()->next[i];
+
 				if (history.top()->next[i]) {
 					history.top()->next[i]->prev[i] = new_node;
 				}
+
 				history.top()->next[i] = new_node;
 				new_node->prev[i] = history.top();
 
@@ -97,6 +87,9 @@ public:
 		}
 
 		for (size_t i = 0; i <= cur_node->lvl(); i++) {
+			cur_node->prev[i];
+			cur_node->prev[i]->next[i];
+			cur_node->next[i];
 			cur_node->prev[i]->next[i] = cur_node->next[i];
 			if (cur_node->next[i]) {
 				cur_node->next[i]->prev[i] = cur_node->prev[i];
@@ -108,8 +101,6 @@ public:
 
 private:
 	Node head;
-
-	size_t max_lvl;
 
 	Node* find_(const T& key, Node* n) {
 		if (n != &head && (!n || n->key == key)) { 
@@ -159,9 +150,13 @@ private:
 		size_t lvl = 0;
 		double deg = 1;
 
-		for (size_t i = 0; i < max_lvl; i++, deg *= 0.5) {
-			if (val <= deg) lvl = i;
-			else break;
+		for (size_t i = 0; i < STANDART_MAX_LVL; i++, deg *= 0.5) {
+			if (val <= deg) { 
+				lvl = i; 
+			}
+			else { 
+				break; 
+			}
 		}
 
 		//std::cout << "LVL: " << lvl << std::endl;
@@ -172,9 +167,26 @@ private:
 	}
 
 	bool is_null(Node* node) const {
-		for (auto i : node->next)
-			if (i) return false;
-
+		for (auto i : node->next) {
+			if (i) {
+				return false;
+			}
+		}
 		return true;
+	}
+
+	void clear() {
+		if (head.next[0]) {
+			Node* tmp = head.next[0];
+			Node* next = nullptr;
+
+			while (tmp) {
+				next = tmp->next[0];
+				delete tmp;
+				tmp = next;
+			}
+		}
+
+		head = Node(STANDART_MAX_LVL);
 	}
 };

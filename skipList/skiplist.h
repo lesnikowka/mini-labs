@@ -1,12 +1,14 @@
 #pragma once
 
 #pragma once
+
+#pragma once
 #include <vector>
 #include <stack>
 #include <ctime>
 #include <stdlib.h>
 
-const size_t STANDART_LVL = 2;
+const size_t STANDART_LVL = 10;
 
 template<class T, class Y>
 class SkipList {
@@ -22,8 +24,8 @@ public:
 		size_t lvl() { return next.size() - 1; }
 	};
 
-	SkipList() : 
-		head(STANDART_LVL), 
+	SkipList() :
+		head(STANDART_LVL),
 		max_lvl(STANDART_LVL) {
 		std::srand(std::time(0));
 	};
@@ -37,7 +39,7 @@ public:
 			extern_node = extern_node->next[0];
 		}
 	}
-	SkipList(SkipList&& sl) noexcept:
+	SkipList(SkipList&& sl) noexcept :
 		head(STANDART_LVL),
 		max_lvl(STANDART_LVL)
 	{
@@ -57,7 +59,7 @@ public:
 		}
 	}
 
-	Node* find(const T& key){
+	Node* find(const T& key) {
 		return find_(key, &head);
 	}
 
@@ -76,6 +78,9 @@ public:
 					history.pop();
 
 				new_node->next[i] = history.top()->next[i];
+				if (history.top()->next[i]) {
+					history.top()->next[i]->prev[i] = new_node;
+				}
 				history.top()->next[i] = new_node;
 				new_node->prev[i] = history.top();
 
@@ -85,25 +90,17 @@ public:
 	}
 
 	void erase(const T& key) {
-		if (!find(key)) throw std::exception("Element was not found");
+		Node* cur_node = find(key);
 
-		std::stack<Node*> history;
-
-		fill_history(history, key);
-
-		Node* cur_node = history.top();
-		history.pop();
-
+		if (!cur_node) {
+			throw std::exception("Element was not found");
+		}
 
 		for (size_t i = 0; i <= cur_node->lvl(); i++) {
-			if (history.empty()) break;
-
-			while (i > history.top()->lvl())
-				history.pop();
-
-			history.top()->next[i] = cur_node->next[i];
-			if (cur_node->next[i])
-				cur_node->next[i]->prev[i] = history.top();
+			cur_node->prev[i]->next[i] = cur_node->next[i];
+			if (cur_node->next[i]) {
+				cur_node->next[i]->prev[i] = cur_node->prev[i];
+			}
 		}
 
 		delete cur_node;
@@ -114,8 +111,10 @@ private:
 
 	size_t max_lvl;
 
-	Node* find_(const T& key, Node* n){
-		if (n != &head && (!n || n->key == key)) return n;
+	Node* find_(const T& key, Node* n) {
+		if (n != &head && (!n || n->key == key)) { 
+			return n; 
+		}
 
 		for (int i = n->next.size() - 1; i >= 0; i--) {
 			if ((n->next[i]) && key >= (n->next[i]->key)) {
@@ -144,14 +143,16 @@ private:
 				}
 			}
 
-			if (n && !end_while) history.push(n);
+			if (n && !end_while) {
+				history.push(n);
+			}
 		}
 
 	}
 
 	size_t random_lvl() const {
-		std::vector<int> v = { 2,2,0,0,2,0,0,1,0,0,2,2};
-		static int n = -1;
+		//std::vector<int> v = { 2,2,0,0,2,0,0,1,0,0,2,2 };
+		//static int n = -1;
 
 		double val = (double)std::rand() / RAND_MAX;
 
@@ -163,9 +164,9 @@ private:
 			else break;
 		}
 
-		std::cout << "LVL: "<<lvl << std::endl;
-		n++;
-		return v[n];
+		//std::cout << "LVL: " << lvl << std::endl;
+		//n++;
+		//return v[n];
 
 		return lvl;
 	}

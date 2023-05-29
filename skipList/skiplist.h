@@ -6,7 +6,7 @@
 #include <ctime>
 #include <stdlib.h>
 
-const size_t STANDART_LVL = 5;
+const size_t STANDART_LVL = 2;
 
 template<class T, class Y>
 class SkipList {

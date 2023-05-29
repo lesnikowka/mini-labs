@@ -150,7 +150,7 @@ private:
 	}
 
 	size_t random_lvl() const {
-		std::vector<int> v = { 2,2,0,0,2,0,0,1,0,0,2,3 };
+		std::vector<int> v = { 2,2,0,0,2,0,0,1,0,0,2,2};
 		static int n = -1;
 
 		double val = (double)std::rand() / RAND_MAX;

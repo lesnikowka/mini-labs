@@ -1,10 +1,12 @@
 #pragma once
+
+#pragma once
 #include <vector>
 #include <stack>
 #include <ctime>
 #include <stdlib.h>
 
-const size_t STANDART_LVL = 4;
+const size_t STANDART_LVL = 5;
 
 template<class T, class Y>
 class SkipList {
@@ -15,16 +17,104 @@ public:
 		std::vector<Node*> next;
 		std::vector<Node*> prev;
 
-		Node(size_t size_, T key_ = T(), Y val_ = Y()) : key(key_), val(val_), 
+		Node(size_t size_, T key_ = T(), Y val_ = Y()) : key(key_), val(val_),
 			next(std::move(std::vector<Node*>(size_ + 1, nullptr))), prev(std::move(std::vector<Node*>(size_ + 1, nullptr))) {}
 		size_t lvl() { return next.size() - 1; }
 	};
+
+	SkipList() : 
+		head(STANDART_LVL), 
+		max_lvl(STANDART_LVL) {
+		std::srand(std::time(0));
+	};
+	SkipList(const SkipList& sl) :
+		max_lvl(sl.max_lvl),
+		head(STANDART_LVL)
+	{
+		Node* extern_node = sl.head.next[0];
+		while (extern_node) {
+			emplace(extern_node->key, extern_node->val);
+			extern_node = extern_node->next[0];
+		}
+	}
+	SkipList(SkipList&& sl) noexcept:
+		head(STANDART_LVL),
+		max_lvl(STANDART_LVL)
+	{
+		std::swap(head, sl.head);
+		std::swap(max_lvl, sl.max_lvl);
+	}
+	~SkipList() {
+		if (head.next[0]) {
+			Node* tmp = head.next[0];
+			Node* next = nullptr;
+
+			while (tmp) {
+				next = tmp->next[0];
+				delete tmp;
+				tmp = next;
+			}
+		}
+	}
+
+	Node* find(const T& key){
+		return find_(key, &head);
+	}
+
+	void emplace(const T& key, const T& val) {
+		if (!find(key)) {
+			Node* new_node = new Node(random_lvl(), key, val);
+
+			std::stack<Node*> history;
+			fill_history(history, key);
+
+
+			for (size_t i = 0; i <= new_node->lvl(); i++) {
+				if (history.empty()) break;
+
+				while (i > history.top()->lvl())
+					history.pop();
+
+				new_node->next[i] = history.top()->next[i];
+				history.top()->next[i] = new_node;
+				new_node->prev[i] = history.top();
+
+			}
+
+		}
+	}
+
+	void erase(const T& key) {
+		if (!find(key)) throw std::exception("Element was not found");
+
+		std::stack<Node*> history;
+
+		fill_history(history, key);
+
+		Node* cur_node = history.top();
+		history.pop();
+
+
+		for (size_t i = 0; i <= cur_node->lvl(); i++) {
+			if (history.empty()) break;
+
+			while (i > history.top()->lvl())
+				history.pop();
+
+			history.top()->next[i] = cur_node->next[i];
+			if (cur_node->next[i])
+				cur_node->next[i]->prev[i] = history.top();
+		}
+
+		delete cur_node;
+	}
+
 private:
 	Node head;
 
 	size_t max_lvl;
 
-	Node* find_(const T& key, Node* n) {
+	Node* find_(const T& key, Node* n){
 		if (n != &head && (!n || n->key == key)) return n;
 
 		for (int i = n->next.size() - 1; i >= 0; i--) {
@@ -59,9 +149,8 @@ private:
 
 	}
 
-
-	size_t random_lvl() {
-		std::vector<int> v = { 0, 1, 0, 0, 0 };
+	size_t random_lvl() const {
+		std::vector<int> v = { 2,2,0,0,2,0,0,1,0,0,2,3 };
 		static int n = -1;
 
 		double val = (double)std::rand() / RAND_MAX;
@@ -74,88 +163,17 @@ private:
 			else break;
 		}
 
-
-		//n++;
-		//return v[n];
+		std::cout << "LVL: "<<lvl << std::endl;
+		n++;
+		return v[n];
 
 		return lvl;
 	}
 
-public:
-	SkipList() : head(STANDART_LVL), max_lvl(STANDART_LVL) {
-		std::srand(std::time(0));
-	};
-	~SkipList() {
-		if (head.next[0]) {
-			Node* tmp = head.next[0];
-			Node* next = nullptr;
-
-			while (tmp) {
-				next = tmp->next[0];
-				delete tmp;
-				tmp = next;
-			}
-		}
-	}
-
-	Node* find(const T& key) {
-		return find_(key, &head);
-	}
-
-	bool is_null(Node* node) {
+	bool is_null(Node* node) const {
 		for (auto i : node->next)
 			if (i) return false;
 
 		return true;
 	}
-
-	void emplace(const T& key, const T& val) {
-		if (!find(key)) {
-			Node* new_node = new Node(random_lvl(), key, val);
-
-			std::stack<Node*> history;
-			fill_history(history, key);
-
-
-			for (size_t i = 0; i <= new_node->lvl(); i++) {
-				if (history.empty()) break;
-
-				while (i > history.top()->lvl())
-					history.pop();
-
-				new_node->next[i] = history.top()->next[i];
-				history.top()->next[i] = new_node;
-				new_node->prev[i] = history.top();
-
-			}
-
-		}
-	}
-
-	void erase(const T& key) {
-		if (!find(key)) throw std::exception("Element was not found");
-	
-		std::stack<Node*> history;
-	
-		fill_history(history, key);
-	
-		Node* cur_node = history.top();
-		history.pop();
-	
-	
-		for (size_t i = 0; i <= cur_node->lvl(); i++) {
-			if (history.empty()) break;
-	
-			while (i > history.top()->lvl())
-				history.pop();
-	
-			history.top()->next[i] = cur_node->next[i];
-			if (cur_node->next[i])
-				cur_node->next[i]->prev[i] = history.top();
-		}
-	
-		delete cur_node;
-	}
-
-
 };

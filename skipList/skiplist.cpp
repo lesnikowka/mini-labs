@@ -1,24 +1,83 @@
 #include <iostream>
-#include "skiplist.h"
+#include "skipList.h"
+#include <vector>
 
-int main()
-{
-    SkipList<int, int> s;
+template<class T, class Y>
+SkipList<T, Y> create_list(const std::vector<std::pair<T, Y>>& v) {
+	SkipList<int, int> sl;
 
-    s.emplace(6, 0);
-    s.emplace(2, 0);
-    s.emplace(3, 0);
-    s.emplace(4, 0);
-    s.emplace(1, 0);
+	for (const auto& e : v) {
+		sl.emplace(e.first, e.second);
+	}
 
-    s.erase(3);
+	return sl;
+}
+
+template<class T, class Y>
+bool Contain(const std::vector<std::pair<int, int>> v, SkipList<T, Y> sl) {
+	for (const auto& e : v) {
+		if (sl.find(e.first) == nullptr) {
+			return false;
+		}
+	}
+	return true;
+}
+
+std::vector<std::pair<int, int>> create_vector(size_t size) {
+	std::srand(0);
+	std::vector<std::pair<int, int>> v;
+	for (int i = 0; i < size; i++) {
+		int tmp = std::rand() / 1000;
+		if (std::find(v.begin(), v.end(), std::make_pair(tmp,tmp)) == v.end()) {
+			v.push_back(std::make_pair(tmp, tmp));
+		}
+	}
+	return v;
+}
+
+void printVector(std::vector<std::pair<int, int>> v) {
+	std::cout << "{";
+	for (auto i : v) {
+		std::cout << "{" << i.first << ", " << i.second << "}, ";
+	}
+	std::cout << "}" << std::endl << std::endl;
+}
+
+int main() {
+	//std::vector<std::pair<int, int>> v = { {1,1},{6,45},{-1,-12},{100,1030},{234,234},{884663,5452},{8977,0},{5,40}, {100, 3}, {888,3}, {2,2} };
+	//
+	//SkipList<int, int> sl = create_list<int, int>(v);
+	//
+	//bool b = Contain<int, int>(v, sl);
+	//
+	//std::vector<std::pair<int, int>> v = { {1,1},{6,45},{-1,-12},{100,1030},{234,234},{884663,5452},{8977,0},{5,40}, {100, 3}, {888,3}, {2,2} };
 
 
-    std::cout << (int)(s.find(6) != nullptr) << std::endl;
-    std::cout << (int)(s.find(2) != nullptr) << std::endl;
-    std::cout << (int)(s.find(3) != nullptr) << std::endl;
-    std::cout << (int)(s.find(4) != nullptr) << std::endl;
-    //std::cout << (int)(s.find(5) != nullptr) << std::endl;
-    std::cout << (int)(s.find(1) != nullptr) << std::endl;
-    std::cout << (int)(s.find(7) != nullptr) << std::endl;
+	std::vector<std::pair<int, int>> v = create_vector(7);
+	printVector(v);
+
+	SkipList<int, int> sl = create_list<int, int>(v);
+
+	v = { {0,0}, {7,7}, {21,21}, {2,2}, {8,8}, {11,11} };
+
+	bool b = Contain<int, int>(v, sl);
+
+	sl.erase(v[0].first);
+	sl.erase(v[1].first);
+	sl.erase(v[2].first);
+	sl.erase(v[3].first);
+	sl.erase(v[4].first);
+	sl.erase(v[5].first);
+
+	v.erase(v.begin());
+	v.erase(v.begin());
+	v.erase(v.begin());
+	v.erase(v.begin());
+	v.erase(v.begin());
+	v.erase(v.begin());
+
+	printVector(v);
+
+	bool b2 = Contain<int, int>(v, sl);
+
 }
